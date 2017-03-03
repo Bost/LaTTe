@@ -1,6 +1,6 @@
 (ns latte.simple-types
   (:require [clojure.test :as test :refer [deftest is]])
-  (:require [latte.core :as l :refer [=== type-of term check-type?]])
+  (:require [latte.core :as l :refer [==> term lambda type-of type-check?]])
   )
 
 ;;{
@@ -16,32 +16,25 @@
 ;;}
 
 (deftest basic-terms
-  (is (=== (type-of [sigma :type]
+  (is (= (type-of [sigma :type]
                     (lambda [x sigma] x))
-           (term [sigma :type] (==> sigma sigma))))
+            (term [sigma :type] (==> sigma sigma))))
 
-  (is (check-type? [sigma :type]
+  (is (type-check? [sigma :type]
                    (lambda [x sigma] x)
                    (==> sigma sigma)))
-  
-  (is (=== (type-of [sigma :type]
-                    [tau :type]
-                    [y (--> sigma tau)]
-                    [x sigma]
-                    (y x))
+
+  (is (= (type-of [sigma :type]
+                  [tau :type]
+                  [y (==> sigma tau)]
+                  [x sigma]
+                  (y x))
           'tau))
 
-  (is (=== (type-of [alpha :type] [beta :type] [gamma :type]
-                    [x (--> alpha alpha)]
-                    [y (--> (--> alpha alpha) beta)]
-                    (lambda [u gamma] (y x)))
-           (term [beta :type] [gamma :type]
-                 (--> gamma beta))))
+  (is (= (type-of [alpha :type] [beta :type] [gamma :type]
+                  [x (==> alpha alpha)]
+                  [y (==> (==> alpha alpha) beta)]
+                  (lambda [u gamma] (y x)))
+            (term [beta :type] [gamma :type]
+                  (==> gamma beta))))
   )
-
-
-
-
-
-
-
