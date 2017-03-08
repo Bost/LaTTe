@@ -332,7 +332,7 @@ term `(type-of% term)` is replaced by the *type* of `term`."
     (let [def-env {}
           t (stx/parse def-env (last args))
           ctx (parse-context-args def-env (butlast args))]
-      ;; (println "[term] t = " t " ctx = " ctx)
+      (println "[term] t = " t " ctx = " ctx)
       (if (latte.kernel.norm/beta-eq? def-env ctx t :kind)
         '□
         (let [ty (ty/type-of def-env ctx t)]
@@ -346,7 +346,7 @@ term `(type-of% term)` is replaced by the *type* of `term`."
   (let [def-env {}
         t (stx/parse def-env (last args))
         ctx (parse-context-args def-env (butlast args))]
-    ;; (println "[type-of] ctx=" ctx)
+    (println "[type-of] ctx=" ctx)
     (let [ty (ty/type-of def-env ctx t)]
       (list 'quote ty))))
 
@@ -355,7 +355,7 @@ term `(type-of% term)` is replaced by the *type* of `term`."
         t (stx/parse def-env (last (butlast args)))
         ty (stx/parse def-env (last args))
         ctx (parse-context-args def-env (butlast (butlast args)))]
-    ;; (println "[type-check?] ctx=" ctx)
+    (println "[type-check?] ctx=" ctx)
     (let [tty (ty/type-of def-env ctx t)]
       (n/beta-eq? def-env ctx ty tty))))
 
