@@ -336,6 +336,7 @@ term `(type-of% term)` is replaced by the *type* of `term`."
       (if (latte.kernel.norm/beta-eq? def-env ctx t :kind)
         '□
         (let [ty (ty/type-of def-env ctx t)]
+          ;; (println "[term]" "t" t "ty" ty)
           (list 'quote t)))))
 
 ;;{
@@ -347,6 +348,7 @@ term `(type-of% term)` is replaced by the *type* of `term`."
         t (stx/parse def-env (last args))
         ctx (parse-context-args def-env (butlast args))]
     (let [ty (ty/type-of def-env ctx t)]
+      ;; (println "[type-of]" "t" t "ty" ty)
       (list 'quote ty))))
 
 (defmacro type-check? [& args]
