@@ -20,6 +20,7 @@
 ;; ## Definitions (defined terms)
 ;;}
 
+;; TODO merge parse-defthm-args, parse-definition-args
 (defn- parse-definition-args [args]
     (when (> (count args) 6)
       (throw (ex-info "Too many arguments for definition" {:max-arity 6 :nb-args (count args)})))
@@ -99,50 +100,6 @@
       (throw (ex-info (str "Parameters of " kind "must be a vector.") {:def-name def-name :params params})))
     [def-name doc params body]))
 
-(defn- handle-defthm
-  "Handling of `defthm` and `deflemma` forms."
-  [kind args]
-  (let [[def-name doc params ty] (parse-defthm-args (if (= kind :theorem)
-                                                      "defthm"
-                                                      "deflemma") args)]
-    (when (defenv/registered-definition? {} def-name)
-      (println "[Warning] redefinition as" (if (= kind :theorem)
-                                             "theorem"
-                                             "lemma") ":" def-name))
-    (let [definition (d/handle-thm-declaration def-name {} params ty)
-          metadata {:doc (mk-doc (if (= kind :theorem)
-                                   "Theorem"
-                                   "Lemma") ty doc)
-                    :arglists (list params)
-                    :private (= kind :lemma)}]
-      [def-name definition metadata])))
-
-(defmacro defthm
-  "Declaration of a theorem of the specified `name` (first argument)
-  an optional `docstring` (second argument), a vector of `parameters`
- and the theorem proposition (last argument).
- Each parameter is a pair `[x T]` with `x` the parameter name and `T` its
-  type.
-
-  A theorem declared must then be demonstrated using the [[proof]] form."
-  [& args]
-  (let [[def-name definition metadata] (handle-defthm :theorem args)]
-    `(do
-       (def ~def-name ~definition)
-       (alter-meta! (var ~def-name) #(merge % (quote  ~metadata)))
-       [:declared :theorem (quote ~def-name)])))
-
-
-(defmacro deflemma
-  "Declaration of a lemma, i.e. an auxiliary theorem. In LaTTe a lemma
-  is private. To export a theorem the [[defthm]] form must be used instead."
-  [& args]
-  (let [[def-name definition metadata] (handle-defthm :lemma args)]
-    `(do
-       (def ~def-name ~definition)
-       (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
-       [:declared :lemma (quote ~def-name)])))
-
 ;;{
 ;; ## Definitions of axioms
 ;;}
@@ -168,22 +125,72 @@
       (throw (ex-info (str "Parameters of " kind "must be a vector.") {:def-name def-name :params params})))
     [def-name doc params body]))
 
-(defn- handle-defaxiom
-  "Handling of `defaxiom` and `defprimitive` forms."
+(defn in?
+  "true if seq contains elm"
+  [seq elm]
+  (boolean (some (fn [e] (= elm e)) seq)))
+
+(defn strs [ks]
+  (get-in
+   {:args {:theorem "defthm"  :lemma "deflemma" :axiom "defaxiom" :primitive "defprimitive"}
+    :warn {:theorem "theorem" :lemma "lemma"    :axiom "axiom"    :primitive "primitive"}
+    :doc  {:theorem "Theorem" :lemma "Lemma"    :axiom "Axiom"    :primitive "Primitive"}}
+   ks
+   (str "Nothing found for ks: " ks)))
+
+(defn- handle-def
+  "Handling of forms: `defaxiom`, `defprimitive`, `defthm`, `deflemma`"
   [kind args]
-  (let [[def-name doc params ty] (parse-defaxiom-args (if (= kind :axiom)
-                                                        "defaxiom"
-                                                        "defprimitive") args)]
+  (println "kind" kind)
+  (println "args" args)
+  (let [parse-fn (condp
+                   (in? [:axiom :primitive] kind) parse-defaxiom-args
+                   (in? [:theorem :lemma] kind) parse-defthm-args
+                   :else (throw (str "No such kind: " kind)))
+        [def-name doc params ty] (parse-fn (strs [:args kind]) args)]
     (when (defenv/registered-definition? {} def-name)
-      (println "[Warning] redefinition as" (if (= kind :axiom)
-                                             "axiom"
-                                             "primitive") ":" def-name))
-    (let [definition (d/handle-axiom-declaration def-name {} params ty)
-          metadata {:doc (mk-doc (if (= kind :axiom)
-                                   "Axiom"
-                                   "Primitive") ty doc)
-                    :arglists (list params)}]
+      (println "[Warning] redefinition as" (strs [:warn kind]) ":" def-name))
+    (let [handle-fn (condp
+                      (in? [:axiom :primitive] kind) d/handle-axiom-declaration
+                      (in? [:theorem :lemma] kind) d/handle-thm-declaration
+                      :else (throw (str "No such kind: " kind)))
+          definition (handle-fn def-name {} params ty)
+          metadata {:doc (mk-doc (strs [:doc kind]) ty doc)
+                    :arglists (list params)
+                    :private (= kind :lemma)}]
       [def-name definition metadata])))
+
+(defn- defexpr
+  "Declaration of a theorem of the specified `name` (first argument)
+  an optional `docstring` (second argument), a vector of `parameters`
+  and the theorem proposition (last argument).
+  Each parameter is a pair `[x T]` with `x` the parameter name and `T` its
+  type.
+
+  A theorem declared must then be demonstrated using the [[proof]] form."
+  [kind & args]
+  (let [[def-name definition metadata] (handle-def kind args)]
+    `(do
+       (def ~def-name ~definition)
+       (alter-meta! (var ~def-name) #(merge % (quote  ~metadata)))
+       [:declared kind (quote ~def-name)])))
+
+(defmacro defthm
+  "Declaration of a theorem of the specified `name` (first argument)
+  an optional `docstring` (second argument), a vector of `parameters`
+ and the theorem proposition (last argument).
+ Each parameter is a pair `[x T]` with `x` the parameter name and `T` its
+  type.
+
+  A theorem declared must then be demonstrated using the [[proof]] form."
+  [& args]
+  (defexpr :theorem args))
+
+(defmacro deflemma
+  "Declaration of a lemma, i.e. an auxiliary theorem. In LaTTe a lemma
+  is private. To export a theorem the [[defthm]] form must be used instead."
+  [& args]
+  (defexpr :lemma args))
 
 (defmacro defaxiom
   "Declaration of an axiom with the specified `name` (first argument)
@@ -199,21 +206,13 @@ favored, but axioms are sometimes required (e.g. the law of the excluded
 In all cases the introduction of an axiom must be justified with strong
  (albeit informal) arguments."
   [& args]
-  (let [[def-name definition metadata] (handle-defaxiom :axiom args)]
-    `(do
-       (def ~def-name ~definition)
-       (alter-meta! (var ~def-name) #(merge % (quote  ~metadata)))
-       [:defined :axiom (quote ~def-name)])))
+  (defexpr :axiom args))
 
 (defmacro defprimitive
   "Declaration of a primitive, i.e. an axiomatic definition (this is indeed
   a synonymous of [[defaxiom]])."
   [& args]
-  (let [[def-name definition metadata] (handle-defaxiom :primitive args)]
-    `(do
-       (def ~def-name ~definition)
-       (alter-meta! (var ~def-name) #(merge % ~metadata))
-       [:defined :primitive (quote ~def-name)])))
+  (defexpr :primitive args))
 
 ;;{
 ;; ## Notations
