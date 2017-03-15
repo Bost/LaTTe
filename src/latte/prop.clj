@@ -72,7 +72,7 @@
     (when (= status :ko)
       (throw (ex-info "Cannot type term." {:special 'latte.prop/impl-trans%
                                            :term impl-term1
-                                           :from ty1})))    
+                                           :from ty1})))
     (let [[status ty2] (ty/type-of-term def-env ctx impl-term2)]
       (when (= status :ko)
         (throw (ex-info "Cannot type term." {:special 'latte.prop/impl-trans%
@@ -88,7 +88,7 @@
           (throw (ex-info "Not an `==>`-type." {:special 'latte.prop/impl-trans%
                                                 :term impl-term2
                                                 :type ty2})))
-        
+
         (when-not (norm/beta-eq? def-env ctx B B')
           (throw (ex-info "Type in the middle mismatch" {:special 'latte.prop/impl-trans%
                                                          :left-rhs-type B
@@ -150,7 +150,7 @@ Note that double-negation is a law of classical (non-intuitionistic) logic."
 
 ;; (neg (neg A))
 ;; = (==> (neg A) absurd)
-;; = (==> (==> A absurd) absurd) 
+;; = (==> (==> A absurd) absurd)
 
 (proof impl-not-not
     :script
@@ -242,7 +242,7 @@ This is a special version of [[and-intro]]."
     (qed c)))
 
 (defn decompose-and-type [def-env ctx t]
-  (if (clojure.core/and (seq? t) 
+  (if (clojure.core/and (seq? t)
                         (= (count t) 3)
                         (= (first t) #'latte.prop/and))
     [:ok (second t) (nth t 2)]
@@ -427,9 +427,9 @@ This is the introduction by the right operand."
 
 Remark: this rule,
 reflecting the definition of [[or]], provides a
- constructive way to eliminate disjunctions. 
+ constructive way to eliminate disjunctions.
 A simpler elimination process is offered if one
- of the two disjuncts does not hold: 
+ of the two disjuncts does not hold:
 cf. [[or-not-elim-left]] and [[or-not-elim-right]]."
   [[A :type] [B :type]]
   (==> (or A B)
@@ -459,7 +459,7 @@ cf. [[or-not-elim-left]] and [[or-not-elim-right]]."
 ;;               C)))
 
 (defn decompose-or-type [def-env ctx t]
-  (if (clojure.core/and (seq? t) 
+  (if (clojure.core/and (seq? t)
                         (= (count t) 3)
                         (= (first t) #'latte.prop/or))
     [:ok (second t) (nth t 2)]
@@ -489,7 +489,7 @@ cf. [[or-not-elim-left]] and [[or-not-elim-right]]."
 (defspecial or-elim%
   "A special elimination rule that takes a proof
  `or-term` of type `(or A B)`, a proposition `prop`,
-a proof `left-proof` of type `(==> A prop)`, 
+a proof `left-proof` of type `(==> A prop)`,
 a proof `right-proof` of type `(==> B prop)`, and thus
 concludes that `prop` holds by `[[or-elim]]`.
 
