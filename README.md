@@ -24,9 +24,14 @@ LaTTe is a **proof assistant library** based on type theory (a variant of
 
 **New!** Watch Latte *live* at: https://www.youtube.com/watch?v=5YTCY7wm0Nw
 
-The specific feature of LaTTe is its design as a library (unlike most proof assistant, generally designed as tools) tightly integrated with the Clojure language. It is of course fully implemented in Clojure, but most importantly all the definitional aspects of the assistant (definitions, theorem and axioms) are handled using Clojure namespaces, definitions and macros.
+The specific feature of LaTTe is its design as a library (unlike most proof
+assistant, generally designed as tools) tightly integrated with the Clojure
+language. It is of course fully implemented in Clojure, but most importantly all
+the definitional aspects of the assistant (definitions, theorem and axioms) are
+handled using Clojure namespaces, definitions and macros.
 
-For example, the fact that logical implication is reflexive can be stated *directly as a Clojure top-level form*:
+For example, the fact that logical implication is reflexive can be stated
+*directly as a Clojure top-level form*:
 
 ```clojure
 (defthm impl-refl
@@ -39,7 +44,8 @@ in plain text:
 
 The proof of the theorem can be also constructed as a Clojure form:
 
-  - either giving a lambda-term as a direct proof (exploiting the proposition-as-type, proof-as-term correspondance) :
+  - either giving a lambda-term as a direct proof (exploiting the
+    proposition-as-type, proof-as-term correspondance):
 
 ```clojure
 (proof impl-refl
@@ -63,14 +69,18 @@ The proof of the theorem can be also constructed as a Clojure form:
 > we can deduce `A` by `x`
 > hence `A` implies `A` as stated (QED).
   
-Of course, all the proofs are *checked for correctness*. Without the introduction
- of an inconsistent axiom (and assuming the correctness of the implementation of the LaTTe kernel),
- *no mathematical inconsistency* can be introduced by the `proof` form.
+Of course, all the proofs are *checked for correctness*. Without the
+introduction of an inconsistent axiom (and assuming the correctness of the
+implementation of the LaTTe kernel), *no mathematical inconsistency* can be
+introduced by the `proof` form.
 
 ## Yes, but what?
 
-LaTTe helps you formalize mathematic concepts and construct formal proofs of theorems (propositions) about such concepts.
-Given the tight integration with the Clojure language, *existing Clojure development environments* (e.g. Cider) can be used as an interactive proof assistant.
+LaTTe helps you formalize mathematic concepts and construct formal proofs of
+theorems (propositions) about such concepts.
+Given the tight integration with the Clojure language, *existing Clojure
+development environments* (e.g. Cider) can be used as an interactive proof
+assistant.
 
 ## How?
 
@@ -82,13 +92,20 @@ The *reference documentation* is at: http://latte-central.github.io/LaTTe/
 
 LaTTe may be of some interest for you:
 
-  - **obviously** if you are interested in type theory and the way it can be implemented on a Computer. LaTTe has been implemented with readability and simplicify in mind (more so than efficiency or correctness),
-  - **probably** if you are interested in the "mechanical" formalization of mathematics, intuitionistic logic, etc. (although you might not learn much, you may be interested in contributing definitions, theorems and proofs),
-  - **maybe** if you are curious about the lambda-calculus (the underlying theory of your favorite programming language) and dependent types (a current trend) and what you can do with these besides programming.
+  - **obviously** if you are interested in type theory and the way it can be
+    implemented on a Computer. LaTTe has been implemented with readability and
+    simplicify in mind (more so than efficiency or correctness),
+  - **probably** if you are interested in the "mechanical" formalization of
+    mathematics, intuitionistic logic, etc. (although you might not learn much,
+    you may be interested in contributing definitions, theorems and proofs),
+  - **maybe** if you are curious about the lambda-calculus (the underlying
+    theory of your favorite programming language) and dependent types (a current
+    trend) and what you can do with these besides programming.
 
 ## When?
 
-LaTTe is, at least for now, an experiment more than a finalized product, but it is already usable.
+LaTTe is, at least for now, an experiment more than a finalized product, but it
+is already usable.
 
 A few non-trivial formalizations have been conducted using LaTTe:
 
@@ -96,7 +113,8 @@ A few non-trivial formalizations have been conducted using LaTTe:
  - a (starting) formalization of **integer arithmetics**: https://github.com/latte-central/latte-integers 
  - a (gorilla REPL) document about **Knaster-Tarski fixed point theorem(s)**: https://github.com/latte-central/fixed-points
 
-Contributions such as mathematical content or enhancement/correction of the underlying machinery are very much welcomed.
+Contributions such as mathematical content or enhancement/correction of the
+underlying machinery are very much welcomed.
 
 ----
 Copyright (C) 2015-2016 Frederic Peschanski (MIT license, cf. `LICENSE`)
