@@ -143,22 +143,32 @@
   [kind args]
   (println "kind" kind)
   (println "args" args)
-  (let [parse-fn (condp
-                   (in? [:axiom :primitive] kind) parse-defaxiom-args
+  (println "(in? [:axiom :primitive] kind)" (in? [:axiom :primitive] kind))
+  (println "(in? [:theorem :lemma] kind)" (in? [:theorem :lemma] kind))
+  (let [parse-fn (cond
+                     (in? [:axiom :primitive] kind) parse-defaxiom-args
                    (in? [:theorem :lemma] kind) parse-defthm-args
                    :else (throw (str "No such kind: " kind)))
-        [def-name doc params ty] (parse-fn (strs [:args kind]) args)]
-    (when (defenv/registered-definition? {} def-name)
-      (println "[Warning] redefinition as" (strs [:warn kind]) ":" def-name))
-    (let [handle-fn (condp
-                      (in? [:axiom :primitive] kind) d/handle-axiom-declaration
-                      (in? [:theorem :lemma] kind) d/handle-thm-declaration
-                      :else (throw (str "No such kind: " kind)))
-          definition (handle-fn def-name {} params ty)
-          metadata {:doc (mk-doc (strs [:doc kind]) ty doc)
-                    :arglists (list params)
-                    :private (= kind :lemma)}]
-      [def-name definition metadata])))
+        args-kind (strs [:args kind])
+        warn-kind (strs [:warn kind])
+        doc-kind (strs [:doc kind])
+        ]
+    (println "args-kind" args-kind)
+    (println "warn-kind" warn-kind)
+    (println "doc-kind" doc-kind)
+    (println "parse-fn" parse-fn)
+    (let [[def-name doc params ty] (parse-fn args-kind args)]
+      (when (defenv/registered-definition? {} def-name)
+        (println "[Warning] redefinition as" warn-kind ":" def-name))
+      (let [handle-fn (cond
+                          (in? [:axiom :primitive] kind) d/handle-axiom-declaration
+                        (in? [:theorem :lemma] kind) d/handle-thm-declaration
+                        :else (throw (str "No such kind: " kind)))
+            definition (handle-fn def-name {} params ty)
+            metadata {:doc (mk-doc doc-kind ty doc)
+                      :arglists (list params)
+                      :private (= kind :lemma)}]
+        [def-name definition metadata]))))
 
 (defn- defexpr
   "Declaration of a theorem of the specified `name` (first argument)
