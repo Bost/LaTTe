@@ -112,7 +112,9 @@
       (throw (ex-info (str "Parameters of " kind "must be a vector.") {:def-name def-name :params params})))
     [def-name doc params body]))
 
-(defn- handle-def [kind args]
+(defn- handle-def-forms
+  "Handling of `defaxiom`, `defprimitive`, `defthm`, `deflemma` forms."
+  [kind args]
   (let [[def-name doc params ty] (parse-def-args (strs [:args kind]) args)]
     (when (defenv/registered-definition? {} def-name)
       (println "[Warning] redefinition as" (strs [:warn kind]) ":" def-name))
@@ -124,11 +126,6 @@
           metadata {:doc (mk-doc (strs [:doc kind]) ty doc)
                     :arglists (list params)}]
       [def-name definition metadata])))
-
-(defn- handle-def-forms
-  "Handling of `defaxiom`, `defprimitive`, `defthm`, `deflemma` forms."
-  [kind args]
-  (handle-def kind args))
 
 (defmacro defthm
   "Declaration of a theorem of the specified `name` (first argument)
