@@ -113,10 +113,7 @@
     [def-name doc params body]))
 
 (defn- handle-def [kind args]
-  (let [parse-fn (if (in? [:axiom :primitive :theorem :lemma] kind)
-                   parse-def-args
-                   (throw (str "No such kind: " kind)))
-        [def-name doc params ty] (parse-fn (strs [:args kind]) args)]
+  (let [[def-name doc params ty] (parse-def-args (strs [:args kind]) args)]
     (when (defenv/registered-definition? {} def-name)
       (println "[Warning] redefinition as" (strs [:warn kind]) ":" def-name))
     (let [handle-fn (cond
