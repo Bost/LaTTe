@@ -16,6 +16,19 @@
             [latte.kernel.defs :as d]
             [latte.kernel.proof :as p]))
 
+(defn in?
+  "true if seq contains elm"
+  [seq elm]
+  (boolean (some (fn [e] (= elm e)) seq)))
+
+(defn strs [ks]
+  (get-in
+   {:args {:theorem "defthm"  :lemma "deflemma" :axiom "defaxiom" :primitive "defprimitive"}
+    :warn {:theorem "theorem" :lemma "lemma"    :axiom "axiom"    :primitive "primitive"}
+    :doc  {:theorem "Theorem" :lemma "Lemma"    :axiom "Axiom"    :primitive "Primitive"}}
+   ks
+   (str "Nothing found for ks: " ks)))
+
 ;;{
 ;; ## Definitions (defined terms)
 ;;}
