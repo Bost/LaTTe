@@ -139,7 +139,7 @@
   (let [[def-name definition metadata] (handle-def-forms :theorem args)]
     `(do
        (def ~def-name ~definition)
-       (alter-meta! (var ~def-name) #(merge % (quote  ~metadata)))
+       (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
        [:declared :theorem (quote ~def-name)])))
 
 (defmacro deflemma
@@ -173,7 +173,7 @@ In all cases the introduction of an axiom must be justified with strong
   (let [[def-name definition metadata] (handle-def-forms :axiom args)]
     `(do
        (def ~def-name ~definition)
-       (alter-meta! (var ~def-name) #(merge % (quote  ~metadata)))
+       (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
        [:defined :axiom (quote ~def-name)])))
 
 (defmacro defprimitive
@@ -183,7 +183,7 @@ In all cases the introduction of an axiom must be justified with strong
   (let [[def-name definition metadata] (handle-def-forms :primitive args)]
     `(do
        (def ~def-name ~definition)
-       (alter-meta! (var ~def-name) #(merge % ~metadata))
+       (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
        [:defined :primitive (quote ~def-name)])))
 
 ;;{
