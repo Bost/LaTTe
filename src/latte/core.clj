@@ -91,28 +91,7 @@
 ;; ## Definitions of theorems
 ;;}
 
-(defn- parse-defthm-args [kind args]
-    (when (> (count args) 4)
-      (throw (ex-info (str "Too many arguments for " kind) {:max-arity 4 :nb-args (count args)})))
-    (when (< (count args) 2)
-      (throw (ex-info (str "Not enough arguments for " kind) {:min-arity 2 :nb-args (count args)})))
-  (let [body (last args)
-        params (if (= (count args) 2)
-                 []
-                 (last (butlast args)))
-        doc (if (= (count args) 4)
-              (nth args 1)
-              "No documentation.")
-        def-name (first args)]
-    (when (not (symbol? def-name))
-      (throw (ex-info (str "Name of " kind " must be a symbol.") {:def-name def-name})))
-    (when (not (string? doc))
-      (throw (ex-info (str "Documentation string for " kind "must be ... a string.") {:def-name def-name :doc doc})))
-    (when (not (vector? params))
-      (throw (ex-info (str "Parameters of " kind "must be a vector.") {:def-name def-name :params params})))
-    [def-name doc params body]))
-
-(defn- parse-defaxiom-args [kind args]
+(defn- parse-def-args [kind args]
   (when (> (count args) 4)
     (throw (ex-info (str "Too many arguments for " kind) {:max-arity 4 :nb-args (count args)})))
   (when (< (count args) 2)
@@ -132,6 +111,12 @@
     (when (not (vector? params))
       (throw (ex-info (str "Parameters of " kind "must be a vector.") {:def-name def-name :params params})))
     [def-name doc params body]))
+
+(defn- parse-defthm-args [kind args]
+  (parse-def-args kind args))
+
+(defn- parse-defaxiom-args [kind args]
+  (parse-def-args kind args))
 
 (defn- handle-def [kind args]
   (let [parse-fn (cond
