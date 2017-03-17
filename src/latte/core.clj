@@ -112,17 +112,10 @@
       (throw (ex-info (str "Parameters of " kind "must be a vector.") {:def-name def-name :params params})))
     [def-name doc params body]))
 
-(defn- parse-defthm-args [kind args]
-  (parse-def-args kind args))
-
-(defn- parse-defaxiom-args [kind args]
-  (parse-def-args kind args))
-
 (defn- handle-def [kind args]
-  (let [parse-fn (cond
-                   (in? [:axiom :primitive] kind) parse-defaxiom-args
-                   (in? [:theorem :lemma] kind) parse-defthm-args
-                   :else (throw (str "No such kind: " kind)))
+  (let [parse-fn (if (in? [:axiom :primitive :theorem :lemma] kind)
+                   parse-def-args
+                   (throw (str "No such kind: " kind)))
         [def-name doc params ty] (parse-fn (strs [:args kind]) args)]
     (when (defenv/registered-definition? {} def-name)
       (println "[Warning] redefinition as" (strs [:warn kind]) ":" def-name))
