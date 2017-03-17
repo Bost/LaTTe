@@ -115,17 +115,11 @@
 (defn- handle-defthm
   "Handling of `defthm` and `deflemma` forms."
   [kind args]
-  (let [[def-name doc params ty] (parse-defthm-args (if (= kind :theorem)
-                                                      "defthm"
-                                                      "deflemma") args)]
+  (let [[def-name doc params ty] (parse-defthm-args (strs [:args kind]) args)]
     (when (defenv/registered-definition? {} def-name)
-      (println "[Warning] redefinition as" (if (= kind :theorem)
-                                             "theorem"
-                                             "lemma") ":" def-name))
+      (println "[Warning] redefinition as" (strs [:warn kind]) ":" def-name))
     (let [definition (d/handle-thm-declaration def-name {} params ty)
-          metadata {:doc (mk-doc (if (= kind :theorem)
-                                   "Theorem"
-                                   "Lemma") ty doc)
+          metadata {:doc (mk-doc (strs [:doc kind]) ty doc)
                     :arglists (list params)
                     :private (= kind :lemma)}]
       [def-name definition metadata])))
@@ -184,17 +178,11 @@
 (defn- handle-defaxiom
   "Handling of `defaxiom` and `defprimitive` forms."
   [kind args]
-  (let [[def-name doc params ty] (parse-defaxiom-args (if (= kind :axiom)
-                                                        "defaxiom"
-                                                        "defprimitive") args)]
+  (let [[def-name doc params ty] (parse-defaxiom-args (strs [:args kind]) args)]
     (when (defenv/registered-definition? {} def-name)
-      (println "[Warning] redefinition as" (if (= kind :axiom)
-                                             "axiom"
-                                             "primitive") ":" def-name))
+      (println "[Warning] redefinition as" (strs [:warn kind]) ":" def-name))
     (let [definition (d/handle-axiom-declaration def-name {} params ty)
-          metadata {:doc (mk-doc (if (= kind :axiom)
-                                   "Axiom"
-                                   "Primitive") ty doc)
+          metadata {:doc (mk-doc (strs [:doc kind]) ty doc)
                     :arglists (list params)}]
       [def-name definition metadata])))
 
