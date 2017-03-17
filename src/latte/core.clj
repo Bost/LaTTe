@@ -125,13 +125,8 @@
                     :arglists (list params)}]
       [def-name definition metadata])))
 
-(defn- handle-defaxiom
-  "Handling of `defaxiom` and `defprimitive` forms."
-  [kind args]
-  (handle-def kind args))
-
-(defn- handle-defthm
-  "Handling of `defthm` and `deflemma` forms."
+(defn- handle-def-forms
+  "Handling of `defaxiom`, `defprimitive`, `defthm`, `deflemma` forms."
   [kind args]
   (handle-def kind args))
 
@@ -144,7 +139,7 @@
 
   A theorem declared must then be demonstrated using the [[proof]] form."
   [& args]
-  (let [[def-name definition metadata] (handle-defthm :theorem args)]
+  (let [[def-name definition metadata] (handle-def-forms :theorem args)]
     `(do
        (def ~def-name ~definition)
        (alter-meta! (var ~def-name) #(merge % (quote  ~metadata)))
@@ -154,7 +149,7 @@
   "Declaration of a lemma, i.e. an auxiliary theorem. In LaTTe a lemma
   is private. To export a theorem the [[defthm]] form must be used instead."
   [& args]
-  (let [[def-name definition metadata] (handle-defthm :lemma args)]
+  (let [[def-name definition metadata] (handle-def-forms :lemma args)]
     `(do
        (def ~def-name ~definition)
        (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
@@ -178,7 +173,7 @@ favored, but axioms are sometimes required (e.g. the law of the excluded
 In all cases the introduction of an axiom must be justified with strong
  (albeit informal) arguments."
   [& args]
-  (let [[def-name definition metadata] (handle-defaxiom :axiom args)]
+  (let [[def-name definition metadata] (handle-def-forms :axiom args)]
     `(do
        (def ~def-name ~definition)
        (alter-meta! (var ~def-name) #(merge % (quote  ~metadata)))
@@ -188,7 +183,7 @@ In all cases the introduction of an axiom must be justified with strong
   "Declaration of a primitive, i.e. an axiomatic definition (this is indeed
   a synonymous of [[defaxiom]])."
   [& args]
-  (let [[def-name definition metadata] (handle-defaxiom :primitive args)]
+  (let [[def-name definition metadata] (handle-def-forms :primitive args)]
     `(do
        (def ~def-name ~definition)
        (alter-meta! (var ~def-name) #(merge % ~metadata))
