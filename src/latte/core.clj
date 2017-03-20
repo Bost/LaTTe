@@ -127,6 +127,21 @@
                     :arglists (list params)}]
       [def-name definition metadata])))
 
+(defn declaration [kind & list-args]
+  #_(println "kind" kind)
+  (let [args (first list-args)]
+    #_(println "declaration" "args" args)
+    (let [[def-name definition metadata] (handle-def-forms kind args)]
+      #_(println "declaration" "def-name" (type def-name))
+      #_(println "declaration" "definition" (type definition))
+      #_(println "declaration" "metadata" (type metadata))
+      (do
+        (println "declaration" "def-name" def-name)
+        (println "declaration" "definition" definition)
+        (println "declaration" "metadata" metadata)
+        #_(alter-meta! 'def-name #(merge % 'metadata))
+        [:declared kind def-name]))))
+
 (defmacro defthm
   "Declaration of a theorem of the specified `name` (first argument)
   an optional `docstring` (second argument), a vector of `parameters`
@@ -136,7 +151,12 @@
 
   A theorem declared must then be demonstrated using the [[proof]] form."
   [& args]
+  #_(println "defthm" "args" args)
+  #_(declaration :theorem args)
   (let [[def-name definition metadata] (handle-def-forms :theorem args)]
+    #_(println "defthm" "def-name" (type def-name))
+    #_(println "defthm" "definition" (type definition))
+    #_(println "defthm" "metadata" (type metadata))
     `(do
        (def ~def-name ~definition)
        (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
@@ -146,6 +166,7 @@
   "Declaration of a lemma, i.e. an auxiliary theorem. In LaTTe a lemma
   is private. To export a theorem the [[defthm]] form must be used instead."
   [& args]
+  #_(declaration :lemma args)
   (let [[def-name definition metadata] (handle-def-forms :lemma args)]
     `(do
        (def ~def-name ~definition)
@@ -170,6 +191,7 @@ favored, but axioms are sometimes required (e.g. the law of the excluded
 In all cases the introduction of an axiom must be justified with strong
  (albeit informal) arguments."
   [& args]
+  #_(declaration :axiom args)
   (let [[def-name definition metadata] (handle-def-forms :axiom args)]
     `(do
        (def ~def-name ~definition)
@@ -180,6 +202,7 @@ In all cases the introduction of an axiom must be justified with strong
   "Declaration of a primitive, i.e. an axiomatic definition (this is indeed
   a synonymous of [[defaxiom]])."
   [& args]
+  #_(declaration :primitive args)
   (let [[def-name definition metadata] (handle-def-forms :primitive args)]
     `(do
        (def ~def-name ~definition)
