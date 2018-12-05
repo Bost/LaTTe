@@ -44,22 +44,23 @@
 
 (def defenv-fn-map
   {:theorem defenv/->Theorem
-   :axiom defenv/->Axiom})
+   :axiom defenv/->Axiom
+   :term defenv/->Definition})
 
-(defn ^:no-doc handle-de [stmt stmt-name params ty]
+(defn ^:no-doc handle-de [stmt stmt-name params body]
   (let [[status params] (parse-parameters defenv/empty-env params)]
     (if (= status :ko)
       [:ko params]
-      (let [[status ty'] (stx/parse-term defenv/empty-env ty)]
+      (let [[status body'] (stx/parse-term defenv/empty-env body)]
         (if (= status :ko)
-          [:ko ty']
-          (if (not (ty/proper-type? defenv/empty-env params ty'))
-            [:ko {:msg (str (clojure.string/capitalize (name stmt)) " body is not a proper type")
-                  stmt stmt-name
-                  :type (unparser/unparse ty')}]
-            [:ok (cond
-                   (= stmt :theorem) ((defenv-fn-map stmt) stmt-name params (count params) ty' false)
-                   (= stmt :axiom)   ((defenv-fn-map stmt) stmt-name params (count params) ty'))]))))))
+          [:ko body']
+          (let [[status ty _] (ty/type-of-term defenv/empty-env params body')]
+            (if (= status :ko)
+              [:ko ty]
+              [:ok (cond
+                     (= stmt :theorem) ((defenv-fn-map stmt) stmt-name params (count params) body' false)
+                     (= stmt :axiom)   ((defenv-fn-map stmt) stmt-name params (count params) body')
+                     (= stmt :term)    ((defenv-fn-map stmt) stmt-name params (count params) body ty {}))])))))))
 
 (declare handle-de-term)
 (declare mk-def-doc)
@@ -92,17 +93,7 @@
                [:defined :term (quote ~def-name)])))))))
 
 (defn ^:no-doc handle-de-term [def-name params body]
-  ;; parse parameters
-  (let [[status params] (parse-parameters defenv/empty-env params)]
-    (if (= status :ko)
-      [:ko params]
-      (let [[status body-term] (stx/parse-term defenv/empty-env body)]
-        (if (= status :ko)
-          [:ko body-term]
-          (let [[status ty _] (ty/type-of-term defenv/empty-env params body-term)]
-            (if (= status :ko)
-              [:ko ty]
-              [:ok (defenv/->Definition def-name params (count params) body-term ty {})])))))))
+  (handle-de :term def-name params body))
 
 (defn ^:no-doc mk-def-doc [kind content explanation]
   (str "\n```\n"
