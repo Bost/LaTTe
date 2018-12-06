@@ -135,41 +135,9 @@
   [& args]
   `(def-thm-lemma :lemma args))
 
-;;{
-;; ## Axioms
-;;}
-
-(s/def ::axiom (s/cat :name ::def-name
-                      :doc (s/? ::def-doc)
-                      :params ::def-params
-                      :body ::def-body))
-
 (defmacro defaxiom
-  "Declaration of an axiom with the specified `name` (first argument)
-  an optional `docstring` (second argument), a vector of `parameters`
- and the axiom statement (last argument).
- Each parameter is a pair `[x T]` with `x` the parameter name and `T` its
-  type. 
-
-  An axiom is accepted without a proof, and should thus be used with
-extra care. The LaTTe rule of thumb is that theorems should be
-favored, but axioms are sometimes required (e.g. the law of the excluded
- middle) or more \"reasonable\" because of the proof length or complexity.
-In all cases the introduction of an axiom must be justified with strong
- (albeit informal) arguments."
   [& args]
-  (let [conf-form (s/conform ::axiom args)]
-    (if (= conf-form :clojure.spec.alpha/invalid)
-      (throw (ex-info "Cannot declare axiom: syntax error."
-                      {:explain (s/explain-str ::axiom args)}))
-      (let [{def-name :name doc :doc params :params body :body} conf-form]
-        (let [[status definition metadata] (handle-de :axiom def-name doc params body)]
-          (if (= status :ko)
-            (throw (ex-info "Cannot declare axiom." {:name def-name :error def-name}))
-            `(do
-               (def ~def-name ~definition)
-               (alter-meta! (var ~def-name) #(merge % (quote ~metadata))) 
-               [:declared :axiom (quote ~def-name)])))))))
+  `(def-thm-lemma :axiom args))
 
 ;;{
 ;; ## Proofs
