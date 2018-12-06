@@ -95,9 +95,6 @@
                                                              :arglists (list (quote ~params)))))
                [:defined :term (quote ~def-name)])))))))
 
-(defn ^:no-doc handle-de-term [def-name params body]
-  (handle-de :term def-name params body))
-
 (defn ^:no-doc mk-def-doc [kind content explanation]
   (str "\n```\n"
        (with-out-str
