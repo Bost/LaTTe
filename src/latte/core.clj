@@ -121,7 +121,7 @@
       (let [{def-name :name doc :doc params :params body :body} conf-form]
         (let [[status definition metadata] (handle-de stmt def-name doc params body)]
           (if (= status :ko)
-            (throw (ex-info (str"Cannot declare " (name stmt) ".") {:name def-name :error def-name}))
+            (throw (ex-info (str "Cannot declare " (name stmt) ".") {:name def-name :error def-name}))
             `(do
                (def ~def-name ~definition)
                (alter-meta! (var ~def-name) #(merge % (quote ~metadata))) 
