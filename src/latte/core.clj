@@ -47,22 +47,28 @@
    :axiom defenv/->Axiom
    :term defenv/->Definition})
 
-(defn ^:no-doc handle-de [stmt stmt-name params body]
+(declare mk-def-doc)
+
+(defn ^:no-doc handle-de [stmt def-name doc params body]
+  (when (defenv/registered-definition? def-name)
+    (println "[Warning] redefinition as" (name stmt) ":" def-name))
   (let [[status params] (parse-parameters defenv/empty-env params)]
     (if (= status :ko)
-      [:ko params]
+      [:ko params nil nil nil]
       (let [[status body'] (stx/parse-term defenv/empty-env body)]
         (if (= status :ko)
-          [:ko body']
+          [:ko body' nil nil nil]
           (let [[status ty _] (ty/type-of-term defenv/empty-env params body')]
             (if (= status :ko)
-              [:ko ty]
-              [:ok (cond
-                     (= stmt :theorem) ((defenv-fn-map stmt) stmt-name params (count params) body' false)
-                     (= stmt :axiom)   ((defenv-fn-map stmt) stmt-name params (count params) body')
-                     (= stmt :term)    ((defenv-fn-map stmt) stmt-name params (count params) body ty {}))])))))))
-
-(declare mk-def-doc)
+              [:ko ty nil nil nil]
+              (let [metadata {:doc (mk-def-doc (clojure.string/capitalize (name stmt)) body doc)
+                              :arglists (list params)}]
+                [:ok
+                 (cond
+                   (= stmt :theorem) ((defenv-fn-map stmt) def-name params (count params) body' false)
+                   (= stmt :axiom)   ((defenv-fn-map stmt) def-name params (count params) body')
+                   (= stmt :term)    ((defenv-fn-map stmt) def-name params (count params) body ty {}))
+                 metadata]))))))))
 
 (defmacro definition
   "Defines a mathematical term composed of a `name`, and optional (but highly recommended)
@@ -78,9 +84,7 @@
       (throw (ex-info "Cannot define term: syntax error."
                       {:explain (s/explain-str ::definition args)}))
       (let [{def-name :name doc :doc params :params body :body} conf-form]
-        (when (defenv/registered-definition? def-name)
-          (println "[Warning] redefinition as term: " def-name))
-        (let [[status definition] (handle-de :term def-name params body)]
+        (let [[status definition metadata] (handle-de :term def-name params doc body)]
           (when (= status :ko)
             (throw (ex-info "Cannot define term." {:name def-name, :error definition})))
           (let [quoted-def# definition]
@@ -111,18 +115,16 @@
 ;; The specs are as follows.
 ;;}
 
-(declare handle-defthm)
-
 (defmacro def-thm-lemma
   [stmt & args]
   (let [conf-form (s/conform ::definition args)]
     (if (= conf-form :clojure.spec.alpha/invalid)
       (throw (ex-info (str "Cannot declare " (name stmt) ": syntax error.")
                       {:explain (s/explain-str ::definition args)}))
-      (let [{thm-name :name doc :doc params :params body :body} conf-form]
-        (let [[status def-name definition metadata] (handle-defthm stmt thm-name doc params body)]
+      (let [{def-name :name doc :doc params :params body :body} conf-form]
+        (let [[status definition metadata] (handle-de stmt def-name doc params body)]
           (if (= status :ko)
-            (throw (ex-info (str"Cannot declare " (name stmt) ".") {:name thm-name :error def-name}))
+            (throw (ex-info (str"Cannot declare " (name stmt) ".") {:name def-name :error def-name}))
             `(do
                (def ~def-name ~definition)
                (alter-meta! (var ~def-name) #(merge % (quote ~metadata))) 
@@ -136,17 +138,6 @@
   [& args]
   `(def-thm-lemma :lemma args))
 
-(defn ^:no-doc handle-defthm [kind thm-name doc params ty]
-  (when (defenv/registered-definition? thm-name)
-    (println "[Warning] redefinition as" (name kind) ":" thm-name))
-  (let [[status definition] (handle-de :theorem thm-name params ty)]
-    (if (= status :ko)
-      [:ko definition nil nil nil]
-      (let [metadata {:doc (mk-def-doc (clojure.string/capitalize (name kind)) ty doc)
-                      :arglists (list params)
-                      :private (= kind :lemma)}]
-        [:ok thm-name definition metadata]))))
-
 ;;{
 ;; ## Axioms
 ;;}
@@ -155,8 +146,6 @@
                       :doc (s/? ::def-doc)
                       :params ::def-params
                       :body ::def-body))
-
-(declare handle-defaxiom)
 
 (defmacro defaxiom
   "Declaration of an axiom with the specified `name` (first argument)
@@ -176,24 +165,14 @@ In all cases the introduction of an axiom must be justified with strong
     (if (= conf-form :clojure.spec.alpha/invalid)
       (throw (ex-info "Cannot declare axiom: syntax error."
                       {:explain (s/explain-str ::axiom args)}))
-      (let [{ax-name :name doc :doc params :params body :body} conf-form]
-        (let [[status def-name definition metadata] (handle-defaxiom :axiom ax-name doc params body)]
+      (let [{def-name :name doc :doc params :params body :body} conf-form]
+        (let [[status definition metadata] (handle-de :axiom def-name doc params body)]
           (if (= status :ko)
-            (throw (ex-info "Cannot declare axiom." {:name ax-name :error def-name}))
+            (throw (ex-info "Cannot declare axiom." {:name def-name :error def-name}))
             `(do
                (def ~def-name ~definition)
                (alter-meta! (var ~def-name) #(merge % (quote ~metadata))) 
                [:declared :axiom (quote ~def-name)])))))))
-
-(defn ^:no-doc handle-defaxiom [kind ax-name doc params ty]
-  (when (defenv/registered-definition? ax-name)
-    (println "[Warning] redefinition as" (name kind) ":" ax-name))
-  (let [[status definition] (handle-de :axiom ax-name params ty)]
-    (if (= status :ko)
-      [:ko definition nil nil nil]
-      (let [metadata {:doc (mk-def-doc (clojure.string/capitalize (name kind)) ty doc)
-                      :arglists (list params)}]
-        [:ok ax-name definition metadata]))))
 
 ;;{
 ;; ## Proofs
