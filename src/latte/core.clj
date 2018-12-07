@@ -295,16 +295,16 @@ as well as a proof."
                (do
                  [:checked :example]))))))))
 
-(defn ^:no-doc handle-example-thm [params ty]
+(defn ^:no-doc handle-example-thm [params body]
   (let [[status params] (parse-parameters defenv/empty-env params)]
     (if (= status :ko)
       [:ko params]
-      (let [[status ty'] (stx/parse-term defenv/empty-env ty)]
+      (let [[status body'] (stx/parse-term defenv/empty-env body)]
         (if (= status :ko)
-          [:ko ty']          
-          (if (not (ty/proper-type? defenv/empty-env params ty'))
-            [:ko {:msg "Example body is not a proper type" :type ty'}]
-            [:ok (defenv/->Theorem (gensym "example") params (count params) ty' false)]))))))
+          [:ko body']
+          (if (not (ty/proper-type? defenv/empty-env params body'))
+            [:ko {:msg "Example body is not a proper type" :type body'}]
+            [:ok (defenv/->Theorem (gensym "example") params (count params) body' false)]))))))
 
 ;;{
 ;; ## Implicits
