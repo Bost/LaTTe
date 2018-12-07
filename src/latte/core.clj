@@ -107,12 +107,12 @@
 
 
 ;;{
-;; ## Theorems and lemmas
+;; ## Theorems, lemmas, axioms
 ;;
 ;; The specs are as follows.
 ;;}
 
-(defmacro def-thm-lemma
+(defmacro defmathstmt
   [stmt & args]
   (let [conf-form (s/conform ::definition args)]
     (if (= conf-form :clojure.spec.alpha/invalid)
@@ -127,17 +127,11 @@
                (alter-meta! (var ~def-name) #(merge % (quote ~metadata))) 
                [:declared stmt (quote ~def-name)])))))))
 
-(defmacro defthm
-  [& args]
-  `(def-thm-lemma :theorem args))
+(defmacro defthm [& args]   `(defmathstmt :theorem args))
 
-(defmacro deflemma
-  [& args]
-  `(def-thm-lemma :lemma args))
+(defmacro deflemma [& args] `(defmathstmt :lemma args))
 
-(defmacro defaxiom
-  [& args]
-  `(def-thm-lemma :axiom args))
+(defmacro defaxiom [& args] `(defmathstmt :axiom args))
 
 ;;{
 ;; ## Proofs
