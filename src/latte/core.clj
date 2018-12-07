@@ -44,6 +44,7 @@
 
 (def defenv-fn-map
   {:theorem defenv/->Theorem
+   :lemma defenv/->Theorem
    :axiom defenv/->Axiom
    :term defenv/->Definition})
 
@@ -62,13 +63,13 @@
             (if (= status :ko)
               [:ko ty nil nil nil]
               (let [metadata {:doc (mk-def-doc (clojure.string/capitalize (name stmt)) body doc)
-                              :arglists (list params)}]
+                              :arglists (list params)
+                              :private (= stmt :lemma)}]
                 [:ok
                  (cond
                    (= stmt :theorem) ((defenv-fn-map stmt) def-name params (count params) body' false)
+                   (= stmt :lemma)   ((defenv-fn-map stmt) def-name params (count params) body' false)
                    (= stmt :axiom)   ((defenv-fn-map stmt) def-name params (count params) body')
-                   ;; TODO see where and how :lemma was invoked
-                   ;; (= stmt :lemma)   ((defenv-fn-map stmt) def-name params (count params) body')
                    ;; :term invoked from definition
                    (= stmt :term)    ((defenv-fn-map stmt) def-name params (count params) body ty {}))
                  metadata]))))))))
