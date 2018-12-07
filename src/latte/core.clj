@@ -67,6 +67,9 @@
                  (cond
                    (= stmt :theorem) ((defenv-fn-map stmt) def-name params (count params) body' false)
                    (= stmt :axiom)   ((defenv-fn-map stmt) def-name params (count params) body')
+                   ;; TODO see where and how :lemma was invoked
+                   ;; (= stmt :lemma)   ((defenv-fn-map stmt) def-name params (count params) body')
+                   ;; :term invoked from definition
                    (= stmt :term)    ((defenv-fn-map stmt) def-name params (count params) body ty {}))
                  metadata]))))))))
 
