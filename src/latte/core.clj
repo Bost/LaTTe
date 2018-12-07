@@ -115,8 +115,9 @@
 ;; The specs are as follows.
 ;;}
 
-(defmacro defmathstmt
+(defn defmathstmt
   [stmt & args]
+  (println "stmt" stmt "args" args)
   (let [conf-form (s/conform ::definition args)]
     (if (= conf-form :clojure.spec.alpha/invalid)
       (throw (ex-info (str "Cannot declare " (name stmt) ": syntax error.")
@@ -130,9 +131,9 @@
                (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
                [:declared stmt (quote ~def-name)])))))))
 
-(defmacro defthm   [& args] `(defmathstmt :theorem args))
-(defmacro deflemma [& args] `(defmathstmt :lemma   args))
-(defmacro defaxiom [& args] `(defmathstmt :axiom   args))
+(defmacro defthm   [& args] `(do (defmathstmt :theorem ~@args)))
+(defmacro deflemma [& args] `(do (defmathstmt :lemma   ~@args)))
+(defmacro defaxiom [& args] `(do (println "defaxiom" ~@args) (defmathstmt :axiom   ~@args)))
 
 ;;{
 ;; ## Proofs
