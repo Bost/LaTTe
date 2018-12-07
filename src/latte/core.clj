@@ -123,14 +123,12 @@
             (throw (ex-info (str "Cannot declare " (name stmt) ".") {:name def-name :error def-name}))
             `(do
                (def ~def-name ~definition)
-               (alter-meta! (var ~def-name) #(merge % (quote ~metadata))) 
+               (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
                [:declared stmt (quote ~def-name)])))))))
 
-(defmacro defthm [& args]   `(defmathstmt :theorem args))
-
-(defmacro deflemma [& args] `(defmathstmt :lemma args))
-
-(defmacro defaxiom [& args] `(defmathstmt :axiom args))
+(defmacro defthm   [& args] `(defmathstmt :theorem args))
+(defmacro deflemma [& args] `(defmathstmt :lemma   args))
+(defmacro defaxiom [& args] `(defmathstmt :axiom   args))
 
 ;;{
 ;; ## Proofs
