@@ -87,13 +87,12 @@
         (let [[status definition metadata] (handle-de :term def-name params doc body)]
           (when (= status :ko)
             (throw (ex-info "Cannot define term." {:name def-name, :error definition})))
-          (let [quoted-def# definition]
-            `(do
-               (def ~def-name ~quoted-def#)
-               (alter-meta! (var ~def-name)  (fn [m#] (assoc m#
-                                                             :doc (mk-def-doc "Definition" (quote ~body) ~doc)
-                                                             :arglists (list (quote ~params)))))
-               [:defined :term (quote ~def-name)])))))))
+          `(do
+             (def ~def-name ~definition)
+             (alter-meta! (var ~def-name)  (fn [m#] (assoc m#
+                                                          :doc (mk-def-doc "Definition" (quote ~body) ~doc)
+                                                          :arglists (list (quote ~params)))))
+             [:defined :term (quote ~def-name)]))))))
 
 (defn ^:no-doc mk-def-doc [kind content explanation]
   (str "\n```\n"
