@@ -52,7 +52,7 @@
 
 (defn ^:no-doc handle-de [stmt def-name doc params body]
   (when (defenv/registered-definition? def-name)
-    (println "[Warning] redefinition as" (name stmt) ":" def-name))
+    (println (str "[Warning] redefinition as " (name stmt) ":") def-name))
   (let [[status params] (parse-parameters defenv/empty-env params)]
     (if (= status :ko)
       [:ko params nil nil nil]
@@ -88,7 +88,7 @@
       (throw (ex-info "Cannot define term: syntax error."
                       {:explain (s/explain-str ::definition args)}))
       (let [{def-name :name doc :doc params :params body :body} conf-form]
-        (let [[status definition metadata] (handle-de :term def-name params doc body)]
+        (let [[status definition metadata] (handle-de :term def-name doc params body)]
           (when (= status :ko)
             (throw (ex-info "Cannot define term." {:name def-name, :error definition})))
           `(do
@@ -117,8 +117,7 @@
 
 (defn defmathstmt
   [stmt & args]
-  (println "stmt" stmt "args" args)
-  (let [conf-form (s/conform ::definition args)]
+  (let [conf-form (apply #(s/conform ::definition %) args)]
     (if (= conf-form :clojure.spec.alpha/invalid)
       (throw (ex-info (str "Cannot declare " (name stmt) ": syntax error.")
                       {:explain (s/explain-str ::definition args)}))
@@ -129,11 +128,11 @@
             `(do
                (def ~def-name ~definition)
                (alter-meta! (var ~def-name) #(merge % (quote ~metadata)))
-               [:declared stmt (quote ~def-name)])))))))
+               [:declared ~stmt (quote ~def-name)])))))))
 
-(defmacro defthm   [& args] `(do (defmathstmt :theorem ~@args)))
-(defmacro deflemma [& args] `(do (defmathstmt :lemma   ~@args)))
-(defmacro defaxiom [& args] `(do (println "defaxiom" ~@args) (defmathstmt :axiom   ~@args)))
+(defmacro defthm   [& args] (defmathstmt :theorem args))
+(defmacro deflemma [& args] (defmathstmt :lemma   args))
+(defmacro defaxiom [& args] (defmathstmt :axiom   args))
 
 ;;{
 ;; ## Proofs
